@@ -25,7 +25,39 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message and update.message.text:
         user_text = update.message.text
         response = await ask_gemini(user_text)
-        await update.message.reply_text(response)
+        await send_long_message(update.message, response)
+
+async def send_long_message(message, text: str):
+    """Send a message, splitting it if it's too long for Telegram"""
+    max_length = 4000
+    
+    if len(text) <= max_length:
+        await message.reply_text(text)
+    else:
+        # Split the message into chunks
+        chunks = []
+        current_chunk = ""
+        
+        # Split by sentences to avoid breaking mid-sentence
+        sentences = text.split('. ')
+        
+        for sentence in sentences:
+            if len(current_chunk + sentence + '. ') <= max_length:
+                current_chunk += sentence + '. '
+            else:
+                if current_chunk:
+                    chunks.append(current_chunk.strip())
+                current_chunk = sentence + '. '
+        
+        if current_chunk:
+            chunks.append(current_chunk.strip())
+        
+        # Send each chunk
+        for i, chunk in enumerate(chunks):
+            if i == 0:
+                await message.reply_text(chunk)
+            else:
+                await message.reply_text(f"(продолжение {i+1})\n\n{chunk}")
 
 async def ask_gemini(prompt: str) -> str:
     try:
@@ -42,13 +74,7 @@ async def ask_gemini(prompt: str) -> str:
             contents=full_prompt
         )
         
-        result = response.text or "Извините, не удалось получить ответ от AI."
-        
-        # Telegram has a 4096 character limit for messages
-        if len(result) > 4000:
-            result = result[:3900] + "...\n\n(Ответ сокращен из-за ограничений Telegram)"
-        
-        return result
+        return response.text or "Извините, не удалось получить ответ от AI."
         
     except Exception as e:
         logger.error(f"Gemini API error: {e}")
