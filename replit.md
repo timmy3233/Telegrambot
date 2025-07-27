@@ -8,8 +8,9 @@ This is a Python-based Telegram chatbot application that serves as an AI-powered
 
 Preferred communication style: Simple, everyday language.
 Bot language: Russian
-Specialization: Tattoo consultation and advice
+Specialization: Tattoo consultation and advice, focusing on engraving style tattoos
 AI Model: Google Gemini 2.5 Flash (switched from OpenAI due to quota issues)
+Bot Response Style: Experienced and friendly tattoo master specializing in engraving style, gives simple and short but meaningful answers, divides messages into easy-to-read small paragraphs
 
 ## System Architecture
 
