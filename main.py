@@ -1,63 +1,70 @@
-#!/usr/bin/env python3
-"""
-Main entry point for the Telegram bot.
-This file initializes and starts the bot with all handlers.
-"""
-
-import logging
 import os
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
-
-from bot.config import BOT_TOKEN, LOG_LEVEL
-from bot.commands import start_command, help_command, echo_command
-from bot.handlers import handle_text_message, error_handler
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
+from openai import OpenAI
+import asyncio
+import logging
 
 # Configure logging
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=getattr(logging, LOG_LEVEL.upper(), logging.INFO)
-)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Получаем токены из переменных окружения (.env)
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
-def main():
-    """
-    Main function to initialize and run the Telegram bot.
-    """
-    if not BOT_TOKEN:
-        logger.error("Bot token not found. Please set TELEGRAM_BOT_TOKEN environment variable.")
-        return
+# Initialize OpenAI client
+openai_client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
-    logger.info("Starting Telegram bot...")
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Привет! Я твой AI-помощник по татуировкам. Задавай вопросы!")
 
-    # Create the Application
-    application = Application.builder().token(BOT_TOKEN).build()
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_text = update.message.text
 
-    # Add command handlers
-    application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("echo", echo_command))
+    response = await ask_gpt(user_text)
+    await update.message.reply_text(response)
 
-    # Add message handler for text messages
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
-
-    # Add error handler
-    application.add_error_handler(error_handler)
-
-    logger.info("Bot handlers registered successfully")
-
-    # Start the bot with polling
+async def ask_gpt(prompt: str) -> str:
     try:
-        logger.info("Starting polling...")
-        application.run_polling(
-            allowed_updates=["message", "callback_query"],
-            drop_pending_updates=True
+        if not openai_client:
+            return "Ошибка: API ключ OpenAI не настроен. Обратитесь к администратору."
+        
+        # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
+        # do not change this unless explicitly requested by the user
+        completion = openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Ты — тату-мастер-консультант, который помогает клиентам с гравюрными татуировками. Дай профессиональный совет, учитывая стиль, размещение, уход и другие важные аспекты татуировок."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=500,
+            temperature=0.7,
         )
+        return completion.choices[0].message.content.strip()
     except Exception as e:
-        logger.error(f"Error starting bot: {e}")
-    finally:
-        logger.info("Bot stopped")
+        logger.error(f"OpenAI API error: {e}")
+        return f"Ошибка при обработке запроса: {e}"
 
+
+
+def run_bot():
+    """Run the bot in a way that works with existing event loops"""
+    if not TELEGRAM_TOKEN:
+        logger.error("Токен Telegram не найден. Установите переменную окружения TELEGRAM_TOKEN.")
+        return
+    
+    if not OPENAI_API_KEY:
+        logger.warning("API ключ OpenAI не найден. Бот будет работать без AI функций.")
+    
+    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+
+    logger.info("Бот запущен...")
+    # Use the synchronous version for better compatibility
+    app.run_polling()
 
 if __name__ == '__main__':
-    main()
+    run_bot()

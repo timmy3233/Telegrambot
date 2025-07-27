@@ -1,27 +1,56 @@
-# Telegram Bot
+# AI Telegram Tattoo Consultant Bot
 
-A Python-based Telegram chatbot with basic command handling and automated message responses.
+Русскоязычный Telegram-бот консультант по татуировкам с интеграцией OpenAI GPT-4o.
 
-## Features
+## Возможности
 
-- **Command Handling**: Responds to `/start`, `/help`, and `/echo` commands
-- **Text Message Processing**: Handles regular text messages with intelligent responses
-- **Error Handling**: Comprehensive error handling and logging
-- **Rate Limiting**: Basic rate limiting to prevent spam
-- **Modular Design**: Easy to extend with new commands and features
-- **Environment Configuration**: Uses environment variables for secure configuration
+- **AI-Консультации**: Профессиональные советы по татуировкам от GPT-4o
+- **Русский Интерфейс**: Полностью на русском языке
+- **Команда /start**: Приветствие и инструкции
+- **Обработка Сообщений**: Умные ответы на любые вопросы о татуировках
+- **Безопасность**: Защищенное хранение API ключей
+- **Логирование**: Полное логирование работы бота
 
-## Setup
+## Настройка
 
-### 1. Create a Telegram Bot
+### 1. Создание Telegram Бота
 
-1. Message [@BotFather](https://t.me/BotFather) on Telegram
-2. Send `/newbot` and follow the instructions
-3. Copy your bot token
+1. Напишите [@BotFather](https://t.me/BotFather) в Telegram
+2. Отправьте команду `/newbot` и следуйте инструкциям
+3. Скопируйте полученный токен бота
 
-### 2. Configure Environment Variables
+### 2. Получение OpenAI API Ключа
 
-Create a `.env` file (copy from `.env.example`):
+1. Зайдите на [OpenAI Platform](https://platform.openai.com/api-keys)
+2. Создайте новый API ключ
+3. Скопируйте ключ (начинается с sk-)
 
-```bash
-cp .env.example .env
+### 3. Настройка Переменных Окружения
+
+В Replit добавьте следующие секреты:
+
+- `TELEGRAM_TOKEN` - токен вашего бота
+- `OPENAI_API_KEY` - ваш OpenAI API ключ
+
+## Использование
+
+После настройки переменных окружения бот автоматически запустится. Пользователи могут:
+
+1. Найти вашего бота в Telegram
+2. Отправить команду `/start` для начала работы
+3. Задавать любые вопросы о татуировках на русском языке
+4. Получать профессиональные AI-советы
+
+## Примеры Вопросов
+
+- "Какая татуировка подойдет на запястье?"
+- "Как ухаживать за свежей татуировкой?"
+- "Что означает стиль реализм в татуировках?"
+- "Больно ли делать татуировку на ребрах?"
+
+## Технические Детали
+
+- **Язык**: Python 3.11
+- **Библиотеки**: python-telegram-bot, openai, python-dotenv
+- **AI Модель**: GPT-4o (самая новая модель OpenAI)
+- **Архитектура**: Асинхронная обработка сообщений
