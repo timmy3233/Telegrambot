@@ -1,12 +1,14 @@
-# Telegram Bot Project
+# Telegram AI Tattoo Consultant Bot
 
 ## Overview
 
-This is a Python-based Telegram chatbot application built using the `python-telegram-bot` library. The bot provides basic command handling, automated message responses, and includes essential features like rate limiting and error handling. The application follows a modular design pattern for easy extensibility.
+This is a Python-based Telegram chatbot application that serves as an AI-powered tattoo consultant. The bot uses OpenAI's GPT-4o model to provide professional tattoo advice in Russian, covering aspects like style, placement, care, and other important tattoo considerations. Built using the `python-telegram-bot` library with modern async/await patterns.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Bot language: Russian
+Specialization: Tattoo consultation and advice
 
 ## System Architecture
 
@@ -18,11 +20,12 @@ Preferred communication style: Simple, everyday language.
 - **Package Structure**: Organized into a `bot` package with specialized modules
 
 ### Core Components
-- **Command Handlers**: Process Telegram bot commands (`/start`, `/help`, `/echo`)
-- **Message Handlers**: Handle regular text messages with intelligent responses
+- **AI Integration**: OpenAI GPT-4o model integration for intelligent tattoo consultation
+- **Command Handlers**: Process Telegram bot commands (`/start`)
+- **Message Handlers**: Handle text messages and generate AI-powered responses
 - **Configuration Management**: Environment-based configuration system
-- **Rate Limiting**: In-memory rate limiting to prevent spam
 - **Error Handling**: Comprehensive error handling and logging
+- **Async Architecture**: Modern async/await pattern for better performance
 
 ## Key Components
 
