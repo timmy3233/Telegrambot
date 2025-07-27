@@ -33,7 +33,7 @@ async def ask_gemini(prompt: str) -> str:
             return "Ошибка: API ключ Gemini не настроен. Обратитесь к администратору."
         
         # Using Gemini 2.5 Flash model for tattoo consultation
-        system_prompt = "Ты — тату-мастер-консультант, который помогает клиентам с гравюрными татуировками. Дай профессиональный совет, учитывая стиль, размещение, уход и другие важные аспекты татуировок."
+        system_prompt = "Ты — тату-мастер-консультант, который помогает клиентам с гравюрными татуировками. Дай краткий профессиональный совет, учитывая стиль, размещение, уход и другие важные аспекты татуировок. Отвечай в 2-3 абзацах максимум."
         
         full_prompt = f"{system_prompt}\n\nВопрос клиента: {prompt}"
         
@@ -42,7 +42,13 @@ async def ask_gemini(prompt: str) -> str:
             contents=full_prompt
         )
         
-        return response.text or "Извините, не удалось получить ответ от AI."
+        result = response.text or "Извините, не удалось получить ответ от AI."
+        
+        # Telegram has a 4096 character limit for messages
+        if len(result) > 4000:
+            result = result[:3900] + "...\n\n(Ответ сокращен из-за ограничений Telegram)"
+        
+        return result
         
     except Exception as e:
         logger.error(f"Gemini API error: {e}")
