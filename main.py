@@ -30,10 +30,9 @@ async def ask_gpt(prompt: str) -> str:
         if not openai_client:
             return "Ошибка: API ключ OpenAI не настроен. Обратитесь к администратору."
         
-        # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-        # do not change this unless explicitly requested by the user
+        # Using GPT-3.5-turbo as requested by the user
         completion = openai_client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Ты — тату-мастер-консультант, который помогает клиентам с гравюрными татуировками. Дай профессиональный совет, учитывая стиль, размещение, уход и другие важные аспекты татуировок."},
                 {"role": "user", "content": prompt}
