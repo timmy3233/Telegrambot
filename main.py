@@ -43,7 +43,12 @@ async def ask_gpt(prompt: str) -> str:
         return completion.choices[0].message.content.strip()
     except Exception as e:
         logger.error(f"OpenAI API error: {e}")
-        return f"Ошибка при обработке запроса: {e}"
+        if "429" in str(e) or "quota" in str(e).lower():
+            return "Извините, достигнут лимит запросов к AI. Пожалуйста, обратитесь к администратору для увеличения квоты OpenAI."
+        elif "401" in str(e) or "unauthorized" in str(e).lower():
+            return "Ошибка авторизации OpenAI. Проверьте API ключ."
+        else:
+            return f"Временная ошибка AI сервиса. Попробуйте позже. Подробности: {e}"
 
 
 
