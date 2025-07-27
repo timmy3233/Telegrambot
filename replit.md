@@ -2,13 +2,14 @@
 
 ## Overview
 
-This is a Python-based Telegram chatbot application that serves as an AI-powered tattoo consultant. The bot uses OpenAI's GPT-3.5-turbo model to provide professional tattoo advice in Russian, covering aspects like style, placement, care, and other important tattoo considerations. Built using the `python-telegram-bot` library with modern async/await patterns.
+This is a Python-based Telegram chatbot application that serves as an AI-powered tattoo consultant. The bot uses Google's Gemini 2.5 Flash model to provide professional tattoo advice in Russian, covering aspects like style, placement, care, and other important tattoo considerations. Built using the `python-telegram-bot` library with modern async/await patterns.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 Bot language: Russian
 Specialization: Tattoo consultation and advice
+AI Model: Google Gemini 2.5 Flash (switched from OpenAI due to quota issues)
 
 ## System Architecture
 
@@ -20,7 +21,7 @@ Specialization: Tattoo consultation and advice
 - **Package Structure**: Organized into a `bot` package with specialized modules
 
 ### Core Components
-- **AI Integration**: OpenAI GPT-3.5-turbo model integration for intelligent tattoo consultation
+- **AI Integration**: Google Gemini 2.5 Flash model integration for intelligent tattoo consultation
 - **Command Handlers**: Process Telegram bot commands (`/start`)
 - **Message Handlers**: Handle text messages and generate AI-powered responses
 - **Configuration Management**: Environment-based configuration system
