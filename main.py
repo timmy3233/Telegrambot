@@ -6,19 +6,46 @@ from google.genai import types
 import asyncio
 import logging
 import time
+import re
 from dotenv import load_dotenv
 
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-    handlers=[
-        logging.StreamHandler()  # чтобы выводилось и в консоль
-    ]
-)
-    
+import logging
+import re
+
+class TokenFilter(logging.Filter):
+    def filter(self, record):
+        # Убираем токен Telegram из сообщения
+        if record.msg:
+            record.msg = re.sub(
+                r'(https://api\.telegram\.org/bot)([0-9]+:[\w-]+)',
+                r'\1<TELEGRAM_TOKEN>',
+                str(record.msg)
+            )
+        return True
+
+# Создаем логгер
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Консольный вывод
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.addFilter(TokenFilter())
+
+# Запись в файл
+file_handler = logging.FileHandler("bot.log", encoding='utf-8')
+file_handler.setLevel(logging.INFO)
+file_handler.addFilter(TokenFilter())
+
+# Формат вывода
+formatter = logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+console_handler.setFormatter(formatter)
+file_handler.setFormatter(formatter)
+
+# Применяем обработчики
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
 
 
 # Получаем токены из переменных окружения (.env)
@@ -31,9 +58,6 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 gemini_client = genai.Client(
     api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
-from keep_alive import keep_alive
-
-keep_alive()
 print("🚀 Бот запущен")
 
 
@@ -147,7 +171,7 @@ async def ask_gemini(prompt: str) -> str:
             return f"Временная ошибка AI сервиса. Попробуйте позже. Подробности: {e}"
 
 
-def run_bot():
+async def run_bot():
     if not TELEGRAM_TOKEN:
         logger.error("Токен Telegram не найден. Установите переменную окружения TELEGRAM_TOKEN.")
         return
@@ -157,14 +181,20 @@ def run_bot():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 
-    logger.info("Бот запущен...")
+    print("🚀 Бот запущен")
+    await application.run_polling(close_loop=False)
+    
+if __name__ == '__main__':
+    import nest_asyncio
+
+    nest_asyncio.apply()
+
+    loop = asyncio.get_event_loop()
 
     try:
-        application.run_polling()
-    except Exception as e:
-        logger.error(f"Ошибка в Telegram: {e}")
-        while True:
-            time.sleep(60)
-
-if __name__ == '__main__':
-    run_bot()
+        loop.run_until_complete(run_bot())
+    except (KeyboardInterrupt, SystemExit):
+        print("⛔ Бот остановлен")
+    finally:
+        # Не закрываем loop, иначе будет RuntimeError
+        pass
