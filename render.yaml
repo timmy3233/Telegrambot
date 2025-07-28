@@ -1,0 +1,11 @@
+services:
+- type: web
+  name: telegram-bot
+  runtime: python
+  buildCommand: ""
+  startCommand: bash start.sh
+  envVars:
+    - key: TELEGRAM_TOKEN
+      value: your-telegram-token-here
+    - key: GEMINI_API_KEY
+      value: your-gemini-api-key-here
