@@ -50,9 +50,8 @@ if TELEGRAM_TOKEN is None:
     raise ValueError("TELEGRAM_TOKEN не задан в переменных окружения")
 application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-WEBHOOK_URL = os.getenv(
-    "WEBHOOK_URL")  # Укажи HTTPS-ссылку, куда Telegram будет слать запросы
-#GEMINI_API_KEY = "AIzaSyCZHcxs1MPSu9DI5BMOV--Md_qNFzd_amI"
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # Укажи HTTPS-ссылку, куда Telegram будет слать запросы
+
 
 # Initialize Gemini client
 
@@ -180,6 +179,7 @@ flask_app = Flask(__name__)
 
 @flask_app.route("/webhook", methods=["POST"])
 def webhook():
+    logger.info("📩 Получено обновление от Telegram")
     update = Update.de_json(request.get_json(force=True), application.bot)
     application.update_queue.put_nowait(update)
     return "OK", 200
