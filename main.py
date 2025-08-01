@@ -185,8 +185,15 @@ flask_app = Flask(__name__)
 def webhook():
     logger.info("📩 Получено обновление от Telegram")
     update = Update.de_json(request.get_json(force=True), application.bot)
-    asyncio.run(application.process_update(update))
-    #application.update_queue.put_nowait(update)
+
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    loop.create_task(application.process_update(update))
+
     return "OK", 200
 
 
