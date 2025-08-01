@@ -198,9 +198,12 @@ async def set_webhook():
 if __name__ == '__main__':
     import asyncio
 
-    # Устанавливаем webhook
-    asyncio.run(set_webhook())
+    async def main():
+        await application.initialize()  # 👈 обязательная инициализация
+        await set_webhook()
 
-    # Запускаем Flask-сервер
-    port = int(os.environ.get("PORT", 5000))
-    flask_app.run(host="0.0.0.0", port=port)
+        # Запускаем Flask сервер
+        port = int(os.environ.get("PORT", 5000))
+        flask_app.run(host="0.0.0.0", port=port)
+
+    asyncio.run(main())
