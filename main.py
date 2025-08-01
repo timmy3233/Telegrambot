@@ -72,8 +72,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message and update.message.text:
         user_text = update.message.text
-        response = await ask_gemini(user_text)
-        await send_long_message(update.message, response)
+        logger.info(f"💬 Получено сообщение от пользователя: {user_text}")
+        try:
+            response = await ask_gemini(user_text)
+            logger.info(f"🤖 Ответ от Gemini: {response}")
+            await send_long_message(update.message, response)
+        except Exception as e:
+            logger.error(f"Ошибка в handle_message: {e}")
+            await update.message.reply_text("Произошла ошибка при обработке сообщения.")
 
 
 async def send_long_message(message, text: str):
