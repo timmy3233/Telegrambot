@@ -171,8 +171,6 @@ async def ask_gemini(prompt: str) -> str:
             return f"Временная ошибка AI сервиса. Попробуйте позже. Подробности: {e}"
 
 
-application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-
 application.add_handler(CommandHandler("start", start))
 application.add_handler(
     MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
@@ -187,7 +185,7 @@ flask_app = Flask(__name__)
 def webhook():
     logger.info("📩 Получено обновление от Telegram")
     update = Update.de_json(request.get_json(force=True), application.bot)
-    asyncio.create_task(application.process_update(update))
+    asyncio.run(application.process_update(update))
     #application.update_queue.put_nowait(update)
     return "OK", 200
 
