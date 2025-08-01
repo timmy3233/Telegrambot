@@ -5,6 +5,7 @@ import google.generativeai as genai
 import logging
 import re
 from dotenv import load_dotenv
+from flask import Flask, request
 
 
 
@@ -45,8 +46,12 @@ logger.addHandler(file_handler)
 
 # Получаем токены из переменных окружения (.env)
 load_dotenv()
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+if TELEGRAM_TOKEN is None:
+    raise ValueError("TELEGRAM_TOKEN не задан в переменных окружения")
+application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # Укажи HTTPS-ссылку, куда Telegram будет слать запросы
 #GEMINI_API_KEY = "AIzaSyCZHcxs1MPSu9DI5BMOV--Md_qNFzd_amI"
 
 # Initialize Gemini client
@@ -164,21 +169,38 @@ async def ask_gemini(prompt: str) -> str:
             return f"Временная ошибка AI сервиса. Попробуйте позже. Подробности: {e}"
 
 
-def run_bot():
-    if not TELEGRAM_TOKEN:
-        logger.error("Токен Telegram не найден. Установите переменную окружения TELEGRAM_TOKEN.")
-        return
 
-    application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
-    print("🚀 Бот запущен")
-    application.run_polling()
+application.add_handler(CommandHandler("start", start))
+application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+
+print("🚀 Бот запущен")
+application.run_polling()
+
+flask_app = Flask(__name__)
+@flask_app.route("/webhook", methods=["POST"])
+def webhook():
+        update = Update.de_json(request.get_json(force=True), application.bot)
+        application.update_queue.put_nowait(update)
+        return "OK", 200
+
+@flask_app.route("/")
+def index():
+    return "Бот работает (webhook)", 200
+
+async def set_webhook():
+    await application.bot.set_webhook(f"{WEBHOOK_URL}/webhook")
+
+
     
 if __name__ == '__main__':
-    try:
-        run_bot()
-    except (KeyboardInterrupt, SystemExit):
-        print("⛔ Бот остановлен")
+    import asyncio
+
+    # Устанавливаем webhook
+    asyncio.run(set_webhook())
+
+    # Запускаем Flask-сервер
+    port = int(os.environ.get("PORT", 5000))
+    flask_app.run(host="0.0.0.0", port=port)
