@@ -187,7 +187,8 @@ flask_app = Flask(__name__)
 def webhook():
     logger.info("📩 Получено обновление от Telegram")
     update = Update.de_json(request.get_json(force=True), application.bot)
-    application.update_queue.put_nowait(update)
+    asyncio.create_task(application.process_update(update))
+    #application.update_queue.put_nowait(update)
     return "OK", 200
 
 
