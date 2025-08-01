@@ -8,17 +8,16 @@ from dotenv import load_dotenv
 from flask import Flask, request
 
 
-
 class TokenFilter(logging.Filter):
+
     def filter(self, record):
         # Убираем токен Telegram из сообщения
         if record.msg:
             record.msg = re.sub(
                 r'(https://api\.telegram\.org/bot)([0-9]+:[\w-]+)',
-                r'\1<TELEGRAM_TOKEN>',
-                str(record.msg)
-            )
+                r'\1<TELEGRAM_TOKEN>', str(record.msg))
         return True
+
 
 # Создаем логгер
 logger = logging.getLogger(__name__)
@@ -35,14 +34,14 @@ file_handler.setLevel(logging.INFO)
 file_handler.addFilter(TokenFilter())
 
 # Формат вывода
-formatter = logging.Formatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+formatter = logging.Formatter(
+    '[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
 console_handler.setFormatter(formatter)
 file_handler.setFormatter(formatter)
 
 # Применяем обработчики
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
-
 
 # Получаем токены из переменных окружения (.env)
 load_dotenv()
@@ -51,17 +50,18 @@ if TELEGRAM_TOKEN is None:
     raise ValueError("TELEGRAM_TOKEN не задан в переменных окружения")
 application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # Укажи HTTPS-ссылку, куда Telegram будет слать запросы
+WEBHOOK_URL = os.getenv(
+    "WEBHOOK_URL")  # Укажи HTTPS-ссылку, куда Telegram будет слать запросы
 #GEMINI_API_KEY = "AIzaSyCZHcxs1MPSu9DI5BMOV--Md_qNFzd_amI"
 
 # Initialize Gemini client
-
 
 # Инициализация Gemini API
 genai.configure(api_key=GEMINI_API_KEY)
 
 model = genai.GenerativeModel("gemini-2.5-flash")
 print("🚀 Бот запущен")
+
 
 # Здесь запускай Telegram-бота
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -108,9 +108,6 @@ async def send_long_message(message, text: str):
                 await message.reply_text(chunk)
             else:
                 await message.reply_text(f"(продолжение {i+1})\n\n{chunk}")
-
-
-
 
 
 async def ask_gemini(prompt: str) -> str:
@@ -169,37 +166,40 @@ async def ask_gemini(prompt: str) -> str:
             return f"Временная ошибка AI сервиса. Попробуйте позже. Подробности: {e}"
 
 
-
-
 application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
 application.add_handler(CommandHandler("start", start))
-application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
+application.add_handler(
+    MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 
 print("🚀 Бот запущен")
 # application.run_polling()
 
 flask_app = Flask(__name__)
+
+
 @flask_app.route("/webhook", methods=["POST"])
 def webhook():
-        update = Update.de_json(request.get_json(force=True), application.bot)
-        application.update_queue.put_nowait(update)
-        return "OK", 200
+    update = Update.de_json(request.get_json(force=True), application.bot)
+    application.update_queue.put_nowait(update)
+    return "OK", 200
+
 
 @flask_app.route("/")
 def index():
     return "Бот работает (webhook)", 200
 
+
 async def set_webhook():
     await application.bot.set_webhook(f"{WEBHOOK_URL}/webhook")
 
 
-    
 if __name__ == '__main__':
     import asyncio
 
     async def main():
         await application.initialize()  # 👈 обязательная инициализация
+        await application.start()
         await set_webhook()
 
         # Запускаем Flask сервер
