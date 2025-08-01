@@ -1,8 +1,10 @@
 import os
+import threading
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
 import google.generativeai as genai
 import logging
+import asyncio
 import re
 from dotenv import load_dotenv
 from flask import Flask, request
@@ -201,21 +203,28 @@ def webhook():
 def index():
     return "Бот работает (webhook)", 200
 
+def run_flask():
+    port = int(os.environ.get("PORT", 5000))
+    flask_app.run(host="0.0.0.0", port=port)
+
 
 async def set_webhook():
     await application.bot.set_webhook(f"{WEBHOOK_URL}/webhook")
 
 
-if __name__ == '__main__':
-    import asyncio
+async def main():
+    await application.initialize()
+    await application.start()
+    await set_webhook()
 
-    async def main():
-        await application.initialize()  # 👈 обязательная инициализация
-        await application.start()
-        await set_webhook()
+    # Запускаем Flask в отдельном потоке
+    flask_thread = threading.Thread(target=run_flask)
+    flask_thread.start()
 
-        # Запускаем Flask сервер
-        port = int(os.environ.get("PORT", 5000))
-        flask_app.run(host="0.0.0.0", port=port)
+    # Чтобы основной цикл не завершался, ждём завершения работы приложения
+    never_set_event = asyncio.Event()
+    await never_set_event.wait()
 
+
+if __name__ == "__main__":
     asyncio.run(main())
