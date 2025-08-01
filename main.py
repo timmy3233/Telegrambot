@@ -177,7 +177,7 @@ application.add_handler(CommandHandler("start", start))
 application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
 
 print("🚀 Бот запущен")
-application.run_polling()
+# application.run_polling()
 
 flask_app = Flask(__name__)
 @flask_app.route("/webhook", methods=["POST"])
