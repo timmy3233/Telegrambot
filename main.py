@@ -194,7 +194,7 @@ def webhook():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-    loop.create_task(application.process_update(update))
+    loop.run_until_complete(application.process_update(update))
 
     return "OK", 200
 
