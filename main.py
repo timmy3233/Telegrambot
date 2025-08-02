@@ -68,7 +68,7 @@ print("🚀 Бот запущен")
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message:
         await update.message.reply_text(
-            "Привет! Я твой AI-помощник по татуировкам. Задавай вопросы!")
+            "Я здесь.")
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
